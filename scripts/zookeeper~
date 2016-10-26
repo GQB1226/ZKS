@@ -1,0 +1,97 @@
+#!/bin/bash
+
+
+
+CONFIG=".config"
+NUM="$CONFIG/NUM"
+IP="$CONFIG/IP"
+USERNAME="$CONFIG/USERNUM"
+FOLDER="zookeeper"
+cd $FOLDER
+found_zookeeper=`ls | grep "tar.gz$"`
+if [[ $found_zookeeper == "" ]]
+then
+	echo 
+	echo "没有找到zookeeper安装包，请确保在目录zookeeper下放置了安装包"
+else 
+	echo "发现安装包$found_zookeeper"
+	tar -zvxf $found_zookeeper
+	for file in *
+	do 
+		if test -d $file
+        then
+            z_path="$file"
+		fi
+	done
+	echo "请输入zookeeper安装路径,默认安装到：/usr/local/$z_path"
+	echo -n "安装到默认路径?(yes/no):"
+	read anw
+	if [[ $anw == "no" ]]
+	then 
+		echo -n "请输入安装路径:"
+		read path
+	else
+		path="/usr/local/"
+    fi
+	#以后需要测试用户输入的path是否存在  
+	mv $z_path $path
+	
+	echo "开始配置"
+	cd $path$z_path
+	cp conf/zoo_sample.cfg conf/zoo.cfg
+	echo "安装集群模式中"
+	echo "请输入zookeeper data路径,默认设置为：/usr/local/zookeeper-data"
+	echo -n "安装到默认路径?(yes/no):"
+	read d_anw
+	if [[ $d_anw == "no" ]]
+	then
+		echo -n "请输入zookeeper data路径："
+		read d_path
+	else 
+		d_path=/usr/local/zookeeper-data
+	fi
+	echo "请输入zookeeper log路径,默认设置为：/usr/local/zookeeper-log"
+	echo -n "安装到默认路径?(yes/no):"
+	read l_anw
+	if [[ $l_anw == "no" ]]
+	then
+		echo -n "请输入zookeeper log路径："
+		read l_path
+	else 
+		l_path=/usr/local/zookeeper-log
+	fi
+	echo "其他属性暂时设为默认值"
+	mkdir d_path
+	mkdir l_path
+	echo "">conf/zoo.cfg
+	echo "#created by auto" > conf/zoo.cfg
+	echo "tickTime=2000" >> conf/zoo.cfg
+	echo "initLimit=10" >> conf/zoo.cfg
+	echo "syncLimit=5" >> conf/zoo.cfg
+	echo "dataDir=$d_path" >> conf/zoo.cfg
+	echo "dataLogDir=$l_path" >>conf/zoo.cfg
+	echo "clientPort=2181" >> conf/zoo.cfg
+	echo "请输入集群中机器个数："
+	read num
+	echo "请输入集群机器ip或者主机名称，如果是主机名称的话请确保在/etc/hosts
+	文件中已经配置"
+	for i in `seq $num`
+	do
+		echo "请输入$i号机器的ip或者主机名称，如果是主机名称的话请确保在/etc/hosts
+	文件中已经配置"
+		read ip
+		echo "server.$i=$ip:2888:3888" >> conf/zoo.cfg
+	done
+	echo "本机配置完成，分发到集群中其他机器"
+	echo "请输入其他机器的信息,格式：用户名@ip:文件位置,例子username@$ip:$path$z_path "
+	for i in `seq $num`
+	do 
+		if [ $i != 1 ]
+		then
+			echo "请输入$i号机器的信息,可能需要输入密码"
+			read info
+            echo $info
+			scp -r $path$z_path $info
+        fi
+    done
+fi
