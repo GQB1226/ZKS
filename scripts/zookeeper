@@ -93,9 +93,9 @@ else
 	j=2
     cat $USERNAME | while read line
     do
-        scp -r $path "${line}@""${ip[$j]}"":$path"
+        scp -r $path "${line}@${ip[$j]}:$path"
 		echo "$j"> myid$j
-		scp myid$j "${line}@""${ip[$j]}"":$path$d_path/myid"
+		scp myid$j "${line}@${ip[$j]}:$d_path/myid"
 		rm myid$j
         j=$[j+1]
     done
