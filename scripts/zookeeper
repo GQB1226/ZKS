@@ -75,6 +75,8 @@ else
 	echo "dataDir=$d_path" >> conf/zoo.cfg
 	echo "dataLogDir=$l_path" >>conf/zoo.cfg
 	echo "clientPort=2181" >> conf/zoo.cfg
+    echo "autopurge.purgeInterval=1" >>conf/zoo.cfg
+    echo "autopurge.snapRetainCount=3" >>conf/zoo.cfg
     echo "1" > $d_path/myid
 
     i=1
